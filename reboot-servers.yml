@@ -1,0 +1,16 @@
+- hosts: all
+  tasks:
+   - name: Reboot
+     become: yes
+     shell: sleep 2 && /sbin/shutdown -r now "system package upgraded by ansible"
+     async: 1
+     poll: 0
+     ignore_errors: true
+
+   - name: Waiting for server to come bac
+     local_action:
+      module: wait_for
+       host={{ inventory_hostname }}
+       port=22
+       delay=1
+       timeout=300

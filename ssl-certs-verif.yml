@@ -1,0 +1,15 @@
+- hosts: all
+  tasks:
+   - name: Check ssl certs
+     become: yes
+     shell: bash -c "openssl x509 -text -in /etc/origin/node/server.crt | grep -A1 'X509v3 Subject Alternative Name'"
+     async: 1
+     poll: 0
+     ignore_errors: true
+     register: result
+
+   - name: Affichage
+     debug: var=result.stdout
+
+#   - debug: msg="{{ result.stdout }}"
+

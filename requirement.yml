@@ -1,0 +1,53 @@
+- hosts: all
+  tasks:
+
+   - name: Disable EPEL sat repo
+     shell: /sbin/subscription-manager repos --disable=Default_Organization_epel_7_x86_64
+
+   - name: Disable swap on all nodes
+     shell: /sbin/swapoff -a
+
+   - name: Add epel repository
+     yum_repository:
+      name: epel
+      description: EPEL YUM repo
+      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+
+   - name: Add CentOS updates repository
+     yum_repository:
+      name: updates
+      description: CentOS-$releasever - Updates
+      mirrorlist: http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates
+      enabled: 1
+      gpgkey: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+
+   - name: import rpm pgp key
+     rpm_key:
+      state: present
+      key: "{{ item }}"
+     with_items:
+      - http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+      - https://muug.ca/mirror/fedora-epel//RPM-GPG-KEY-EPEL-7
+
+   - name: upgrade all packages
+     yum:
+      name: "*"
+      state: latest
+
+   - name: install centos-release-openshift-origin.noarch repo
+     yum:
+      name: centos-release-openshift-origin
+      state: present
+
+   - name: Install Openvswitch 
+     yum:
+      name: openvswitch
+      state: present
+
+- hosts: masters
+  tasks:
+   - name: Install python metric dependencies
+     yum:
+      name: python-passlib
+      state: present
+

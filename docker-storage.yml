@@ -1,0 +1,36 @@
+- hosts: all
+
+  tasks:
+  - name: Install docker package
+    yum:
+     name: docker
+     state: present
+
+  - lvg:
+     vg: dockervg
+     pvs: /dev/vdb
+
+  - name: Configure docker storage
+    lineinfile: 
+     path: /etc/sysconfig/docker-storage-setup 
+     line: VG=dockervg
+    notify: restart docker-storage-setup
+
+  - name: Configure docker INSECURE_REGISTRY
+    lineinfile: 
+     path: /etc/sysconfig/docker
+     line: INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'
+    notify: restart docker
+
+  - name: Ensure docker is running and enabled
+    service:
+     name: docker
+     state: started 
+     enabled: yes
+  
+  handlers:
+    - name: restart docker
+      service: name=docker state=restarted
+
+    - name: restart docker-storage-setup
+      service: name=docker-storage-setup state=restarted
